@@ -1,0 +1,46 @@
+---
+title: "FinancialBudgetAnalysiswithR"
+output: pdf_document
+---
+```{r}
+# Core wrapping function
+wrap.it <- function(x, len)
+{ 
+  sapply(x, function(y) paste(strwrap(y, len), 
+                              collapse = "\n"), 
+         USE.NAMES = FALSE)
+}
+
+
+# Call this function with a list or vector
+wrap.labels <- function(x, len)
+{
+  if (is.list(x))
+  {
+    lapply(x, wrap.it, len)
+  } else {
+    wrap.it(x, len)
+  }
+}
+financial=read.csv('https://raw.githubusercontent.com/amankharwal/Website-data/master/India_budget_2021.csv')
+drop_na=na.omit(financial)
+head(drop_na)
+drop_na<-drop_na[order(-drop_na$Fund.allotted.in..crores.),]
+newdata<-drop_na[1:5,]
+otherdata<-drop_na[6:55,]
+other_sum<-sum(otherdata[, 'Fund.allotted.in..crores.'])
+newdata[nrow(newdata) + 1,] = c('Others',other_sum)
+newdata<-newdata[2:6,]
+x<-as.numeric(newdata[,2,])/100000
+wr.lap <- wrap.labels(newdata$Department..Ministry, 10)
+barplot(x,main = "Indian Budget",xlab = "Ministries",ylab = "Trillions",ylim = c(0,15),names.arg = wr.lap)
+```
+
+```{r}
+data<-as.data.frame(newdata)
+data$percent = round(100*as.numeric(data$Fund.allotted.in..crores)/sum(as.numeric(data$Fund.allotted.in..crores)), digits = 1)
+data$label = paste(data$Department..Ministry," (", data$percent,"%)", sep = "")
+custom_colors <- c("red","Darkgreen","Yellow","Tomato","Purple")
+pie(table(data$Fund.allotted.in..crores), labels = data$label,main = "Distribution Of Budget",col = custom_colors)
+```
+
